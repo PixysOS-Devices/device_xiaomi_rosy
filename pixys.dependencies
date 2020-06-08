@@ -1,0 +1,14 @@
+[
+ {
+   "remote": "github",
+   "repository": "PixysOS-devices/kernel_xiaomi_rosy",
+   "branch": "ten"
+   "target_path": "kernel/xiaomi/rosy",
+ },
+ {
+   "remote": "github",
+   "repository": "PixysOS-devices/vendor_xiaomi_rosy",
+   "branch": "ten"
+   "target_path": "vendor/xiaomi/rosy",
+ }
+]

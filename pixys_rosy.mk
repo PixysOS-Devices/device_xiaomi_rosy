@@ -19,14 +19,14 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_n_mr1.mk)
 
-# Inherit some common LineageOS stuff
-$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+# Inherit some common PixysOS stuff
+$(call inherit-product, vendor/pixys/config/common_full_phone.mk)
 
 # Inherit from rosy device
 $(call inherit-product, device/xiaomi/rosy/device.mk)
 
 # Device identifier. This must come after all inclusions
-PRODUCT_NAME := lineage_rosy
+PRODUCT_NAME := pixys_rosy
 PRODUCT_DEVICE := rosy
 PRODUCT_BRAND := Xiaomi
 PRODUCT_MODEL := Redmi 5
@@ -39,6 +39,9 @@ TARGET_BOOTANIMATION_HALF_RES := true
 TARGET_BOOTANIMATION_MULTITHREAD_DECODE := true
 TARGET_BOOTANIMATION_PRELOAD := true
 TARGET_BOOTANIMATION_TEXTURE_CACHE := true
+
+# GApps
+TARGET_GAPPS_ARCH := arm64
 
 PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
 
