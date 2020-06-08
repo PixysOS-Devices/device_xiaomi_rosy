@@ -260,7 +260,7 @@ case "$target" in
                   ;;
         esac
         ;;
-    "msm8994" | "msm8992" | "msm8998" | "apq8098_latv" | "sdm845" | "sdm710" | "qcs605" | "talos")
+    "msm8994" | "msm8992" | "msm8998" | "apq8098_latv" | "sdm845" | "qcs605" | "talos")
         start_msm_irqbalance
         ;;
     "msm8996")
@@ -351,7 +351,7 @@ case "$target" in
                                     setprop qemu.hw.mainkeys 0
                                     ;;
                        "QRD")
-                                   if [ $product_device == "tissot_sprout" ]; then
+                                   if [ $product_device = "tissot_sprout" ]; then
                                        setprop qemu.hw.mainkeys 1
                                    else
                                        setprop qemu.hw.mainkeys 0
@@ -361,6 +361,7 @@ case "$target" in
        esac
         ;;
     "sdm710")
+    	start_msm_irqbalance
         if [ -f /sys/devices/soc0/soc_id ]; then
             soc_id=`cat /sys/devices/soc0/soc_id`
         else

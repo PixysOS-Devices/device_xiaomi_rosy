@@ -83,12 +83,12 @@ function configure_automotive_sku_parameters() {
 reg_val=`cat /sys/devices/platform/soc/780130.qfprom/qfprom0/nvmem | od -An -t d4`
 feature_id=$(((reg_val >> 20) & 0xFF))
 log -t BOOT -p i "feature id '$feature_id'"
-if [ $feature_id == 0 ]; then
+if [ $feature_id = 0 ]; then
        echo " SKU Configured : SA8155P"
        echo 2131200 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
        echo 2419200 > /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq
        echo 0 > /sys/class/kgsl/kgsl-3d0/max_pwrlevel
-elif [ $feature_id == 1 ]; then
+elif [ $feature_id = 1 ]; then
         echo "SKU Configured : SA8150P"
         echo 1920000 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq
         echo 2227200 > /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq
@@ -104,7 +104,7 @@ function configure_sku_parameters() {
 reg_val=`cat /sys/devices/platform/soc/780130.qfprom/qfprom0/nvmem | od -An -t d4`
 feature_id=$(((reg_val >> 20) & 0xFF))
 log -t BOOT -p i "feature id '$feature_id'"
-if [ $feature_id == 6 ]; then
+if [ $feature_id = 6 ]; then
 	echo " SKU Configured : SA6145"
 	echo 748800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 	echo 748800 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
@@ -130,7 +130,7 @@ if [ $feature_id == 6 ]; then
 	echo {class:ddr, res:capped, val: 1016} > /sys/kernel/debug/aop_send_message
 	setprop vendor.sku_identified 1
 	setprop vendor.sku_name "SA6145"
-elif [ $feature_id == 5 ]; then
+elif [ $feature_id = 5 ]; then
 	echo "SKU Configured : SA6150"
 	echo 748800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 	echo 748800 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
@@ -156,7 +156,7 @@ elif [ $feature_id == 5 ]; then
 	echo {class:ddr, res:capped, val: 1333} > /sys/kernel/debug/aop_send_message
 	setprop vendor.sku_identified 1
 	setprop vendor.sku_name "SA6150"
-elif [ $feature_id == 4 ] || [ $feature_id == 3 ]; then
+elif [ $feature_id = 4 ] || [ $feature_id = 3 ]; then
 	echo "SKU Configured : SA6155"
 	echo 748800 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 	echo 748800 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
@@ -538,8 +538,7 @@ function sdm660_sched_schedutil_dcvs() {
 target=`getprop ro.board.platform`
 
 function configure_zram_parameters() {
-    MemTotalStr=`cat /proc/meminfo | grep MemTotal`
-    MemTotal=${MemTotalStr:16:8}
+    MemTotal=`awk '/MemTotal/ { print $2 }' /proc/meminfo`
 
     low_ram=`getprop ro.config.low_ram`
 
@@ -564,7 +563,7 @@ function configure_zram_parameters() {
         zRamSizeBytes=4294967296
     fi
 
-    if [ "$low_ram" == "true" ]; then
+    if [ "$low_ram" = "true" ]; then
         echo lz4 > /sys/block/zram0/comp_algorithm
     fi
 
@@ -589,8 +588,7 @@ function configure_zram_parameters() {
 }
 
 function configure_read_ahead_kb_values() {
-    MemTotalStr=`cat /proc/meminfo | grep MemTotal`
-    MemTotal=${MemTotalStr:16:8}
+    MemTotal=`awk '/MemTotal/ { print $2 }' /proc/meminfo`
 
     dmpts=$(ls /sys/block/*/queue/read_ahead_kb | grep -e dm -e mmc)
 
@@ -620,14 +618,13 @@ function disable_core_ctl() {
 }
 
 function enable_swap() {
-    MemTotalStr=`cat /proc/meminfo | grep MemTotal`
-    MemTotal=${MemTotalStr:16:8}
+    MemTotal=`awk '/MemTotal/ { print $2 }' /proc/meminfo`
 
     SWAP_ENABLE_THRESHOLD=1048576
     swap_enable=`getprop ro.vendor.qti.config.swap`
 
     # Enable swap initially only for 1 GB targets
-    if [ "$MemTotal" -le "$SWAP_ENABLE_THRESHOLD" ] && [ "$swap_enable" == "true" ]; then
+    if [ "$MemTotal" -le "$SWAP_ENABLE_THRESHOLD" ] && [ "$swap_enable" = "true" ]; then
         # Static swiftness
         echo 1 > /proc/sys/vm/swap_ratio_enable
         echo 70 > /proc/sys/vm/swap_ratio
@@ -664,7 +661,7 @@ function configure_memory_parameters() {
 ProductName=`getprop ro.product.name`
 low_ram=`getprop ro.config.low_ram`
 
-if [ "$ProductName" == "msmnile" ] || [ "$ProductName" == "kona" ] || [ "$ProductName" == "sdmshrike_au" ]; then
+if [ "$ProductName" = "msmnile" ] || [ "$ProductName" = "kona" ] || [ "$ProductName" = "sdmshrike_au" ]; then
       # Enable ZRAM
       configure_zram_parameters
       configure_read_ahead_kb_values
@@ -674,7 +671,7 @@ else
     arch_type=`uname -m`
 
     # Set parameters for 32-bit Go targets.
-    if [ "$low_ram" == "true" ]; then
+    if [ "$low_ram" = "true" ]; then
         # Disable KLMK, ALMK, PPR & Core Control for Go devices
         echo 0 > /sys/module/lowmemorykiller/parameters/enable_lmk
         echo 0 > /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk
@@ -702,7 +699,7 @@ else
 
         # Calculate vmpressure_file_min as below & set for 64 bit:
         # vmpressure_file_min = last_lmk_bin + (last_lmk_bin - last_but_one_lmk_bin)
-        if [ "$arch_type" == "aarch64" ]; then
+        if [ "$arch_type" = "aarch64" ]; then
             minfree_series=`cat /sys/module/lowmemorykiller/parameters/minfree`
             minfree_1="${minfree_series#*,}" ; rem_minfree_1="${minfree_1%%,*}"
             minfree_2="${minfree_1#*,}" ; rem_minfree_2="${minfree_2%%,*}"
@@ -715,7 +712,7 @@ else
         else
             # Set LMK series, vmpressure_file_min for 32 bit non-go targets.
             # Disable Core Control, enable KLMK for non-go 8909.
-            if [ "$ProductName" == "msm8909" ]; then
+            if [ "$ProductName" = "msm8909" ]; then
                 disable_core_ctl
                 echo 1 > /sys/module/lowmemorykiller/parameters/enable_lmk
             fi
@@ -780,8 +777,7 @@ fi
 
 function enable_memory_features()
 {
-    MemTotalStr=`cat /proc/meminfo | grep MemTotal`
-    MemTotal=${MemTotalStr:16:8}
+    MemTotal=`awk '/MemTotal/ { print $2 }' /proc/meminfo`
 
     if [ $MemTotal -le 2097152 ]; then
         #Enable B service adj transition for 2GB or less memory
@@ -1757,7 +1753,7 @@ case "$target" in
             ;;
             *)
                 panel=`cat /sys/class/graphics/fb0/modes`
-                if [ "${panel:5:1}" == "x" ]; then
+                if [ "${panel:5:1}" = "x" ]; then
                     panel=${panel:2:3}
                 else
                     panel=${panel:2:4}
@@ -1880,14 +1876,14 @@ case "$target" in
 
                 #Disable CPU retention modes for 32bit builds
                 ProductName=`getprop ro.product.name`
-                if [ "$ProductName" == "msm8952_32" ] || [ "$ProductName" == "msm8952_32_LMT" ]; then
+                if [ "$ProductName" = "msm8952_32" ] || [ "$ProductName" = "msm8952_32_LMT" ]; then
                     echo N > /sys/module/lpm_levels/system/a72/cpu4/retention/idle_enabled
                     echo N > /sys/module/lpm_levels/system/a72/cpu5/retention/idle_enabled
                     echo N > /sys/module/lpm_levels/system/a72/cpu6/retention/idle_enabled
                     echo N > /sys/module/lpm_levels/system/a72/cpu7/retention/idle_enabled
                 fi
 
-                if [ `cat /sys/devices/soc0/revision` == "1.0" ]; then
+                if [ `cat /sys/devices/soc0/revision` = "1.0" ]; then
                     # Disable l2-pc and l2-gdhs low power modes
                     echo N > /sys/module/lpm_levels/system/a53/a53-l2-gdhs/idle_enabled
                     echo N > /sys/module/lpm_levels/system/a72/a72-l2-gdhs/idle_enabled
@@ -2699,7 +2695,7 @@ case "$target" in
         fi
 
         panel=`cat /sys/class/graphics/fb0/modes`
-        if [ "${panel:5:1}" == "x" ]; then
+        if [ "${panel:5:1}" = "x" ]; then
             panel=${panel:2:3}
         else
             panel=${panel:2:4}
@@ -3136,12 +3132,12 @@ case "$target" in
                     echo "bw_hwmon" > $cpubw/governor
                     echo 50 > $cpubw/polling_interval
                     echo 762 > $cpubw/min_freq
-                    if [ ${ddr_type:4:2} == $ddr_type4 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type4 ]; then
                         # LPDDR4
                         echo "2288 3440 4173 5195 5859 7759 10322 11863 13763" > $cpubw/bw_hwmon/mbps_zones
                         echo 85 > $cpubw/bw_hwmon/io_percent
                     fi
-                    if [ ${ddr_type:4:2} == $ddr_type3 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type3 ]; then
                         # LPDDR3
                         echo "1525 3440 5195 5859 7102" > $cpubw/bw_hwmon/mbps_zones
                         echo 34 > $cpubw/bw_hwmon/io_percent
@@ -3206,7 +3202,7 @@ case "$target" in
         case "$soc_id" in
             "355" | "369" | "377" | "380" | "384" )
       target_type=`getprop ro.hardware.type`
-      if [ "$target_type" == "automotive" ]; then
+      if [ "$target_type" = "automotive" ]; then
 	# update frequencies
 	configure_sku_parameters
 	sku_identified=`getprop vendor.sku_identified`
@@ -3561,7 +3557,7 @@ case "$target" in
         configure_memory_parameters
 
         rev=`cat /sys/devices/soc0/revision`
-        if [ $rev == "2.0" ] || [ $rev == "2.0.2" ]; then
+        if [ $rev = "2.0" ] || [ $rev = "2.0.2" ]; then
              # r2.0 related changes
              echo "0:1075200" > /sys/devices/system/cpu/cpu_boost/input_boost_freq
              echo 610000 > /sys/devices/system/cpu/cpufreq/policy0/schedutil/rtg_boost_freq
@@ -3956,12 +3952,12 @@ case "$target" in
                     echo "bw_hwmon" > $cpubw/governor
                     echo 50 > $cpubw/polling_interval
                     echo 762 > $cpubw/min_freq
-                    if [ ${ddr_type:4:2} == $ddr_type4 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type4 ]; then
                         # LPDDR4
                         echo "2288 3440 4173 5195 5859 7759 10322 11863 13763" > $cpubw/bw_hwmon/mbps_zones
                         echo 85 > $cpubw/bw_hwmon/io_percent
                     fi
-                    if [ ${ddr_type:4:2} == $ddr_type3 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type3 ]; then
                         # LPDDR3
                         echo "1525 3440 5195 5859 7102" > $cpubw/bw_hwmon/mbps_zones
                         echo 34 > $cpubw/bw_hwmon/io_percent
@@ -4043,12 +4039,12 @@ case "$target" in
                     echo "bw_hwmon" > $cpubw/governor
                     echo 50 > $cpubw/polling_interval
                     echo 762 > $cpubw/min_freq
-                    if [ ${ddr_type:4:2} == $ddr_type4 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type4 ]; then
                         # LPDDR4
                         echo "2288 3440 4173 5195 5859 7759 10322 11863 13763" > $cpubw/bw_hwmon/mbps_zones
                         echo 85 > $cpubw/bw_hwmon/io_percent
                     fi
-                    if [ ${ddr_type:4:2} == $ddr_type3 ]; then
+                    if [ ${ddr_type:4:2} = $ddr_type3 ]; then
                         # LPDDR3
                         echo "1525 3440 5195 5859 7102" > $cpubw/bw_hwmon/mbps_zones
                         echo 34 > $cpubw/bw_hwmon/io_percent
@@ -4725,10 +4721,10 @@ case "$target" in
         echo "cpufreq" > /sys/class/devfreq/soc:qcom,mincpubw/governor
 
 	soc_revision=`cat /sys/devices/soc0/revision`
-	if [ "$soc_revision" == "2.0" ]; then
+	if [ "$soc_revision" = "2.0" ]; then
 		#Disable suspend for v2.0
 		echo pwr_dbg > /sys/power/wake_lock
-	elif [ "$soc_revision" == "2.1" ]; then
+	elif [ "$soc_revision" = "2.1" ]; then
 		# Enable C4.D4.E4.M3 LPM modes
 		# Disable D3 state
 		echo 0 > /sys/module/lpm_levels/system/pwr/pwr-l2-gdhs/idle_enabled
@@ -5106,7 +5102,7 @@ case "$target" in
     echo 0 > /sys/module/lpm_levels/parameters/sleep_disabled
     configure_memory_parameters
     target_type=`getprop ro.hardware.type`
-	if [ "$target_type" == "automotive" ]; then
+	if [ "$target_type" = "automotive" ]; then
            # update frequencies
            configure_automotive_sku_parameters
 	fi
@@ -5323,13 +5319,13 @@ case "$target" in
         echo 1171200 > /sys/devices/system/cpu/cpu7/cpufreq/scaling_min_freq
         #setting min gpu freq to 392  MHz
         echo 4 > /sys/class/kgsl/kgsl-3d0/min_pwrlevel
-        if [ $feature_id == 0 ]; then
+        if [ $feature_id = 0 ]; then
                 echo "feature_id is 0 for SA8185P"
 
                 #setting max gpu freq to 530 MHz
                 echo 3 > /sys/class/kgsl/kgsl-3d0/max_pwrlevel
                 echo {class:ddr, res:capped, val: 1804} > /sys/kernel/debug/aop_send_message
-        elif [ $feature_id == 1 ]; then
+        elif [ $feature_id = 1 ]; then
                 echo "feature_id is 1 for SA8195P"
 
                 #setting max gpu freq to 670 MHz
@@ -5396,7 +5392,7 @@ case "$target" in
 	echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
 	echo 0 > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
 	echo 0 > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
-        if [ $rev == "2.0" ] || [ $rev == "2.1"]; then
+        if [ $rev = "2.0" ] || [ $rev = "2.1" ]; then
 		echo 1248000 > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
 	else
 		echo 1228800 > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
@@ -5419,7 +5415,7 @@ case "$target" in
 	echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy7/scaling_governor
 	echo 0 > /sys/devices/system/cpu/cpufreq/policy7/schedutil/down_rate_limit_us
 	echo 0 > /sys/devices/system/cpu/cpufreq/policy7/schedutil/up_rate_limit_us
-        if [ $rev == "2.0" ] || [ $rev == "2.1"]; then
+        if [ $rev = "2.0" ] || [ $rev = "2.1" ]; then
 		echo 1632000 > /sys/devices/system/cpu/cpufreq/policy7/schedutil/hispeed_freq
 	else
 		echo 1612800 > /sys/devices/system/cpu/cpufreq/policy7/schedutil/hispeed_freq
@@ -5449,9 +5445,9 @@ case "$target" in
 	    do
 		echo "bw_hwmon" > $llccbw/governor
 		echo 40 > $llccbw/polling_interval
-		if [ ${ddr_type:4:2} == $ddr_type4 ]; then
+		if [ ${ddr_type:4:2} = $ddr_type4 ]; then
 			echo "1720 2086 2929 3879 5161 5931 6881 7980" > $llccbw/bw_hwmon/mbps_zones
-		elif [ ${ddr_type:4:2} == $ddr_type5 ]; then
+		elif [ ${ddr_type:4:2} = $ddr_type5 ]; then
 			echo "1720 2086 2929 3879 5931 6881 7980 10437" > $llccbw/bw_hwmon/mbps_zones
 		fi
 		echo 4 > $llccbw/bw_hwmon/sample_ms
@@ -5470,9 +5466,9 @@ case "$target" in
 		echo 1 > /sys/devices/virtual/npu/msm_npu/pwr
 		echo "bw_hwmon" > $npubw/governor
 		echo 40 > $npubw/polling_interval
-		if [ ${ddr_type:4:2} == $ddr_type4 ]; then
+		if [ ${ddr_type:4:2} = $ddr_type4 ]; then
 			echo "1720 2086 2929 3879 5931 6881 7980" > $npubw/bw_hwmon/mbps_zones
-		elif [ ${ddr_type:4:2} == $ddr_type5 ]; then
+		elif [ ${ddr_type:4:2} = $ddr_type5 ]; then
 			echo "1720 2086 2929 3879 5931 6881 7980 10437" > $npubw/bw_hwmon/mbps_zones
 		fi
 		echo 4 > $npubw/bw_hwmon/sample_ms
